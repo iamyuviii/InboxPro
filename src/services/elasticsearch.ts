@@ -5,9 +5,8 @@ const esUsername = process.env.ES_USERNAME;
 const esPassword = process.env.ES_PASSWORD;
 const esIndex = process.env.ES_INDEX || 'emails';
 
-// Optional: Validate required env vars
 if (!esNode || !esUsername || !esPassword) {
-  throw new Error('Elasticsearch credentials are missing from environment variables.');
+  throw new Error('Missing Elasticsearch environment variables.');
 }
 
 export const esClient = new Client({
@@ -17,7 +16,7 @@ export const esClient = new Client({
     password: esPassword,
   },
   ssl: {
-    rejectUnauthorized: false, // ⚠️ Only use this in development
+    rejectUnauthorized: false, // only for dev/test
   },
 });
 
@@ -32,7 +31,7 @@ export async function indexEmail(
   try {
     const response = await esClient.index({
       index: esIndex,
-      document: {
+      body: {
         subject: email.subject || '',
         from: email.from?.text || '',
         to: email.to?.text || '',
