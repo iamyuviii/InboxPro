@@ -13,7 +13,10 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Elasticsearch query
+// Read the target Elasticsearch index from env (fallback: "emails")
+const ES_INDEX = process.env.ES_INDEX || 'emails';
+
+// Helper: build Elasticsearch query body
 function buildSearchBody(q?: string, account?: string, folder?: string) {
   const must: any[] = [];
   if (q) {
@@ -26,8 +29,12 @@ function buildSearchBody(q?: string, account?: string, folder?: string) {
   }
 
   const filter: any[] = [];
-  if (account && account !== 'All') filter.push({ term: { 'account.keyword': account } });
-  if (folder  && folder !== 'All')  filter.push({ term: { 'folder.keyword': folder  } });
+  if (account && account !== 'All') {
+    filter.push({ term: { 'account.keyword': account } });
+  }
+  if (folder && folder !== 'All') {
+    filter.push({ term: { 'folder.keyword': folder } });
+  }
 
   return {
     size: 100,
@@ -38,12 +45,12 @@ function buildSearchBody(q?: string, account?: string, folder?: string) {
   };
 }
 
-// Routes
+// GET /emails — list/filter
 app.get('/emails', async (req, res) => {
   try {
     const { account, folder } = req.query as any;
     const body = buildSearchBody(undefined, account, folder);
-    const { body: esBody } = await esClient.search({ index: 'emails', body });
+    const { body: esBody } = await esClient.search({ index: ES_INDEX, body });
     const hits = (esBody as any).hits.hits.map((h: any) => h._source);
     res.json(hits);
   } catch (err) {
@@ -52,11 +59,12 @@ app.get('/emails', async (req, res) => {
   }
 });
 
+// GET /emails/search?q=&account=&folder= — full-text search + filters
 app.get('/emails/search', async (req, res) => {
   try {
     const { q, account, folder } = req.query as any;
     const body = buildSearchBody(q, account, folder);
-    const { body: esBody } = await esClient.search({ index: 'emails', body });
+    const { body: esBody } = await esClient.search({ index: ES_INDEX, body });
     const hits = (esBody as any).hits.hits.map((h: any) => h._source);
     res.json(hits);
   } catch (err) {
@@ -65,13 +73,13 @@ app.get('/emails/search', async (req, res) => {
   }
 });
 
-// Start server
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+// Start HTTP server
+const PORT = parseInt(process.env.PORT || '3000', 10);
 app.listen(PORT, () => {
   console.log(`API server listening on http://localhost:${PORT}`);
 });
 
-// Connect IMAP
+// IMAP account definitions
 const accounts = [
   {
     user: process.env.IMAP_USER1!,
@@ -89,6 +97,7 @@ const accounts = [
   }
 ];
 
+// Real-time IMAP sync + backfill callback
 accounts.forEach(account => {
   connectIMAP(
     account,
@@ -97,14 +106,14 @@ accounts.forEach(account => {
         `[${accountName}] New Email (${isRealTime ? 'RT' : 'initial'}): ${email.subject || 'No Subject'}`
       );
 
-      // 1) Categorize
+      // 1) Categorize via AI/rules
       const category = await categorizeEmail(email.text || '');
       console.log('Category:', category);
 
-      // 2) Always index
+      // 2) Index into Elasticsearch (same ES_INDEX)
       await indexEmail(email, accountName, category);
 
-      // 3) Only notify on real-time only when category is Interested
+      // 3) Notify Slack + Webhook only for real-time "Interested"
       if (isRealTime && category === 'Interested') {
         await notifySlack({
           from: { text: email.from?.text || 'Unknown Sender' },
