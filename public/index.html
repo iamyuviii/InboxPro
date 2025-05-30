@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Email Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f5f7;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      padding: 24px 0;
+      background: #2c3e50;
+      color: #ecf0f1;
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    #controls label {
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    select, input, button {
+      padding: 8px 12px;
+      font-size: 0.95rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    select:focus, input:focus, button:focus {
+      border-color: #2980b9;
+      box-shadow: 0 0 0 2px rgba(41, 128, 185, 0.2);
+    }
+
+    button {
+      background: #2980b9;
+      color: #fff;
+      cursor: pointer;
+      border: none;
+    }
+
+    button:hover {
+      background: #1f6f9f;
+    }
+
+    #emails {
+      max-width: 800px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .email {
+      background: #fff;
+      margin-bottom: 16px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+
+    .email:hover {
+      transform: translateY(-2px);
+    }
+
+    .subject {
+      font-weight: bold;
+      font-size: 1.1rem;
+      padding: 12px 16px;
+      background: #ecf0f1;
+      margin: 0;
+    }
+
+    .meta {
+      font-size: 0.85rem;
+      color: #777;
+      padding: 8px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .body-snippet, .full-body {
+      padding: 0 16px 12px;
+      line-height: 1.4;
+    }
+
+    .full-body {
+      display: none;
+      background: #fafafa;
+      border-top: 1px solid #eee;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #bdc3c7;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      color: #2c3e50;
+    }
+
+    .toggle {
+      display: block;
+      margin: 0 16px 12px;
+      background: none;
+      border: none;
+      color: #2980b9;
+      cursor: pointer;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Email Dashboard</h1>
+
+  <div id="controls">
+    <label>Account:
+      <select id="accountFilter">
+        <option>All</option>
+        <option>yuvrajkhichi89@gmail.com</option>
+        <option>yuvrajkhichi99@gmail.com</option>
+      </select>
+    </label>
+
+    <label>Folder:
+      <select id="folderFilter">
+        <option>All</option>
+        <option>INBOX</option>
+      </select>
+    </label>
+
+    <input id="search" placeholder="Search emails..." />
+    <button id="btnSearch">Search</button>
+    <button id="btnRefresh">Refresh</button>
+  </div>
+
+  <div id="emails"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
