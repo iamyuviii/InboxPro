@@ -37,7 +37,7 @@ export function connectIMAP(
       console.log(`[${account.user}] INBOX opened, ${box.messages.total} messages`);
 
       // 1) Initial 2-day fetch because as i have too many emails in my inbox 
-      const since = formatSinceDate(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000));
+      const since = formatSinceDate(new Date(Date.now() - 1* 24 * 60 * 60 * 1000));
       imap.search([['SINCE', since]], (searchErr, uids: number[]) => {
         if (searchErr) {
           console.error('Initial search error:', searchErr);
